@@ -1,0 +1,10 @@
+{
+  "rus": {
+    "url": "https://tessdata.projectnaptha.com/4.0.0/rus.traineddata.gz",
+    "sha256": "63a48ae166be2bb9862839b6f75e11afbac5e3be5bd5fa9a155ea43d5cdf9575"
+  },
+  "eng": {
+    "url": "https://tessdata.projectnaptha.com/4.0.0/eng.traineddata.gz",
+    "sha256": "ed350f3752f81ee8f38769edc14d92d997dababe23b565c59879372cc46a2468"
+  }
+}

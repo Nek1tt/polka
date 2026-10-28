@@ -1,0 +1,310 @@
+{
+  "templates": [
+    {
+      "template_id": "universal_v1",
+      "version": 1,
+      "name": "Универсальная карточка",
+      "supported_categories": [
+        "*"
+      ],
+      "description_styles": [
+        "structured"
+      ],
+      "blocks": [
+        {
+          "block_id": "gallery",
+          "title": "Фотографии товара",
+          "kind": "photos",
+          "field_ids": []
+        },
+        {
+          "block_id": "title",
+          "title": "Название товара",
+          "kind": "fields",
+          "field_ids": [
+            "product_name"
+          ]
+        },
+        {
+          "block_id": "category",
+          "title": "Тип товара (необязательно)",
+          "kind": "category",
+          "field_ids": []
+        },
+        {
+          "block_id": "characteristics",
+          "title": "О товаре",
+          "kind": "fields",
+          "field_ids": [
+            "net_quantity",
+            "brand",
+            "model",
+            "material",
+            "dimensions",
+            "color",
+            "specifications",
+            "manufacturer",
+            "ingredients",
+            "storage_conditions",
+            "shelf_life",
+            "fat_percent"
+          ]
+        },
+        {
+          "block_id": "description",
+          "title": "Описание",
+          "kind": "description",
+          "field_ids": []
+        }
+      ]
+    },
+    {
+      "template_id": "market_v1",
+      "version": 1,
+      "name": "Витрина",
+      "supported_categories": [
+        "*"
+      ],
+      "description_styles": [
+        "structured"
+      ],
+      "blocks": [
+        {
+          "block_id": "gallery",
+          "title": "Фотографии товара",
+          "kind": "photos",
+          "field_ids": []
+        },
+        {
+          "block_id": "title",
+          "title": "Название товара",
+          "kind": "fields",
+          "field_ids": [
+            "product_name"
+          ]
+        },
+        {
+          "block_id": "category",
+          "title": "Тип товара (необязательно)",
+          "kind": "category",
+          "field_ids": []
+        },
+        {
+          "block_id": "characteristics",
+          "title": "О товаре",
+          "kind": "fields",
+          "field_ids": [
+            "net_quantity",
+            "brand",
+            "model",
+            "material",
+            "dimensions",
+            "color",
+            "specifications",
+            "manufacturer",
+            "ingredients",
+            "storage_conditions",
+            "shelf_life",
+            "fat_percent"
+          ]
+        },
+        {
+          "block_id": "description",
+          "title": "Описание",
+          "kind": "description",
+          "field_ids": []
+        }
+      ]
+    },
+    {
+      "template_id": "studio_v1",
+      "version": 1,
+      "name": "Акцент на фото",
+      "supported_categories": [
+        "*"
+      ],
+      "description_styles": [
+        "structured"
+      ],
+      "blocks": [
+        {
+          "block_id": "gallery",
+          "title": "Фотографии товара",
+          "kind": "photos",
+          "field_ids": []
+        },
+        {
+          "block_id": "title",
+          "title": "Название товара",
+          "kind": "fields",
+          "field_ids": [
+            "product_name"
+          ]
+        },
+        {
+          "block_id": "category",
+          "title": "Тип товара (необязательно)",
+          "kind": "category",
+          "field_ids": []
+        },
+        {
+          "block_id": "characteristics",
+          "title": "О товаре",
+          "kind": "fields",
+          "field_ids": [
+            "net_quantity",
+            "brand",
+            "model",
+            "material",
+            "dimensions",
+            "color",
+            "specifications",
+            "manufacturer",
+            "ingredients",
+            "storage_conditions",
+            "shelf_life",
+            "fat_percent"
+          ]
+        },
+        {
+          "block_id": "description",
+          "title": "Описание",
+          "kind": "description",
+          "field_ids": []
+        }
+      ]
+    },
+    {
+      "template_id": "compact_v1",
+      "version": 1,
+      "name": "Каталог",
+      "supported_categories": [
+        "*"
+      ],
+      "description_styles": [
+        "structured"
+      ],
+      "blocks": [
+        {
+          "block_id": "gallery",
+          "title": "Фотографии товара",
+          "kind": "photos",
+          "field_ids": []
+        },
+        {
+          "block_id": "title",
+          "title": "Название товара",
+          "kind": "fields",
+          "field_ids": [
+            "product_name"
+          ]
+        },
+        {
+          "block_id": "category",
+          "title": "Тип товара (необязательно)",
+          "kind": "category",
+          "field_ids": []
+        },
+        {
+          "block_id": "characteristics",
+          "title": "О товаре",
+          "kind": "fields",
+          "field_ids": [
+            "net_quantity",
+            "brand",
+            "model",
+            "material",
+            "dimensions",
+            "color",
+            "specifications",
+            "manufacturer",
+            "ingredients",
+            "storage_conditions",
+            "shelf_life",
+            "fat_percent"
+          ]
+        },
+        {
+          "block_id": "description",
+          "title": "Описание",
+          "kind": "description",
+          "field_ids": []
+        }
+      ]
+    }
+  ],
+  "category_profiles": [
+    {
+      "category": "unknown",
+      "label": "Любой товар",
+      "supported": true,
+      "fields": [
+        {
+          "field_id": "product_name",
+          "label": "Название товара",
+          "required": true
+        },
+        {
+          "field_id": "net_quantity",
+          "label": "Масса, объём или количество",
+          "required": false
+        },
+        {
+          "field_id": "brand",
+          "label": "Бренд",
+          "required": false
+        },
+        {
+          "field_id": "model",
+          "label": "Модель / артикул",
+          "required": false
+        },
+        {
+          "field_id": "material",
+          "label": "Материал",
+          "required": false
+        },
+        {
+          "field_id": "dimensions",
+          "label": "Размеры",
+          "required": false
+        },
+        {
+          "field_id": "color",
+          "label": "Цвет",
+          "required": false
+        },
+        {
+          "field_id": "specifications",
+          "label": "Другие характеристики",
+          "required": false
+        },
+        {
+          "field_id": "manufacturer",
+          "label": "Производитель",
+          "required": false
+        },
+        {
+          "field_id": "ingredients",
+          "label": "Состав",
+          "required": false
+        },
+        {
+          "field_id": "storage_conditions",
+          "label": "Условия хранения",
+          "required": false
+        },
+        {
+          "field_id": "shelf_life",
+          "label": "Срок годности",
+          "required": false
+        },
+        {
+          "field_id": "fat_percent",
+          "label": "Жирность",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

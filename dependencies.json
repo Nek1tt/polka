@@ -1,0 +1,44 @@
+{
+  "release": "2.4.2",
+  "python": "3.13.13",
+  "node": "24.15.0",
+  "npm": "11.12.1",
+  "python_lock": "requirements.lock",
+  "npm_lock": "package-lock.json",
+  "docker_images": {
+    "node": "node:24.15.0-bookworm-slim@sha256:4e6b70dd6cbfc88c8157ba19aa3d9f9cce6ba4703576d55459e45efcbc9c5f5d",
+    "python": "python:3.13.13-slim-bookworm@sha256:355bfa66770995d7e9a0da4b3473b44d0cb451f6b56f5615ad9c39e3c4eca03f"
+  },
+  "direct_python": {
+    "fastapi": "0.148.0",
+    "httpx": "0.28.1",
+    "jsonschema": "4.26.0",
+    "pillow": "13.0.0",
+    "psutil": "7.2.2",
+    "pytest": "9.1.1",
+    "python-multipart": "0.0.32",
+    "pyyaml": "6.0.3",
+    "uvicorn": "0.54.0",
+    "rapidocr": "3.10.0",
+    "onnxruntime": "1.24.4",
+    "python-dotenv": "1.2.1"
+  },
+  "python_package_count": 50,
+  "node_package_count": 15,
+  "ocr_models": {
+    "ppocrv5": {
+      "source": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.9.2/onnx",
+      "verification": "backend/local_ocr.py"
+    },
+    "tesseract": {
+      "rus": {
+        "url": "https://tessdata.projectnaptha.com/4.0.0/rus.traineddata.gz",
+        "sha256": "63a48ae166be2bb9862839b6f75e11afbac5e3be5bd5fa9a155ea43d5cdf9575"
+      },
+      "eng": {
+        "url": "https://tessdata.projectnaptha.com/4.0.0/eng.traineddata.gz",
+        "sha256": "ed350f3752f81ee8f38769edc14d92d997dababe23b565c59879372cc46a2468"
+      }
+    }
+  }
+}

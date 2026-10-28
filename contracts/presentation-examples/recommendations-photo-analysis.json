@@ -1,0 +1,84 @@
+{
+  "card_id": "card_example",
+  "provider_mode": "fixture",
+  "card_revision": 1,
+  "generated_at": "2026-10-26T21:57:36.663512+00:00",
+  "readiness": {
+    "state": "needs_information",
+    "required_filled": 0,
+    "required_total": 1,
+    "missing_fields": [
+      "product_name"
+    ],
+    "review_fields": [],
+    "blocking_issue_ids": [
+      "missing_required:product_name:0"
+    ]
+  },
+  "recommendations": [
+    {
+      "recommendation_id": "8591da879aabd3c16e4b0afb",
+      "card_revision": 1,
+      "rule_id": "missing_required",
+      "priority": "blocker",
+      "area": "characteristics",
+      "action_type": "provide_information",
+      "reason": "Не заполнено: Название товара",
+      "action": "Укажите сведения с упаковки или из собственных данных",
+      "field_ids": [
+        "product_name"
+      ],
+      "photo_ids": [],
+      "source_ids": [],
+      "issue_ids": [
+        "missing_required:product_name:0"
+      ],
+      "question": "Какое название товара указано на упаковке?",
+      "candidates": []
+    },
+    {
+      "recommendation_id": "ca6d7ce2abd81ef39d806fde",
+      "card_revision": 1,
+      "rule_id": "unreadable_photos",
+      "priority": "warning",
+      "area": "photos",
+      "action_type": "verify_photo",
+      "reason": "OCR не нашёл надёжного текста",
+      "action": "Заполните сведения вручную или добавьте крупное фото надписи. Отсутствие OCR-текста не доказывает размытость фотографии.",
+      "field_ids": [],
+      "photo_ids": [
+        "photo_example"
+      ],
+      "source_ids": [],
+      "issue_ids": [
+        "unreadable_photos:card:1"
+      ],
+      "question": null,
+      "candidates": []
+    }
+  ],
+  "photo_analysis": {
+    "job_id": "fixture-photo-job",
+    "requested_at": "2026-10-19T12:00:00Z",
+    "photos": [
+      {
+        "photo_id": "photo_example",
+        "url": "/api/v1/photos/photo_example",
+        "width": 1200,
+        "height": 1600,
+        "quality": "unreadable"
+      }
+    ],
+    "issues": [
+      {
+        "issue_id": "unreadable_photos:card:1",
+        "rule_id": "unreadable_photos",
+        "severity": "warning",
+        "message": "OCR не нашёл надёжного текста",
+        "suggestion": "Добавьте крупный снимок надписи или заполните сведения вручную. Товар без надписей тоже допустим.",
+        "field_ids": [],
+        "photo_ids": []
+      }
+    ]
+  }
+}

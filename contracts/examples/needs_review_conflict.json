@@ -1,0 +1,496 @@
+{
+  "schema_version": "2.2",
+  "card_id": "card_example",
+  "revision": 2,
+  "created_at": "2026-10-19T12:00:00Z",
+  "expires_at": "2026-10-20T12:00:00Z",
+  "provider_mode": "fixture",
+  "ruleset_version": "2.4.1",
+  "photos": [
+    {
+      "photo_id": "photo_example",
+      "url": "/api/v1/photos/photo_example",
+      "width": 1200,
+      "height": 1600,
+      "quality": "readable"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "s_product_name",
+      "kind": "ocr_text",
+      "text": "Варенье из яблок",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.1,
+        0.9,
+        0.19
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_net_quantity",
+      "kind": "ocr_text",
+      "text": "250 г",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.22,
+        0.9,
+        0.31
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_ingredients",
+      "kind": "ocr_text",
+      "text": "Яблоки, сахар",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.33999999999999997,
+        0.9,
+        0.43
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_storage_conditions",
+      "kind": "ocr_text",
+      "text": "Хранить при температуре от +2 до +6 °C",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.45999999999999996,
+        0.9,
+        0.55
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_shelf_life",
+      "kind": "ocr_text",
+      "text": "30 суток",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.58,
+        0.9,
+        0.6699999999999999
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_category",
+      "kind": "classifier",
+      "text": "jam",
+      "photo_id": null,
+      "bbox": null,
+      "confidence": {
+        "value": 0.88,
+        "kind": "classifier_score",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [
+        "s_product_name",
+        "s_ingredients"
+      ],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_manual_quantity",
+      "kind": "user_input",
+      "text": "200 г",
+      "photo_id": null,
+      "bbox": null,
+      "confidence": null,
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    }
+  ],
+  "category": {
+    "selected": "unknown",
+    "suggested": "unknown",
+    "reviewed": false,
+    "source_ids": [],
+    "scores": [],
+    "method": "Explicit text headings; no category model",
+    "model_version": "rules-2"
+  },
+  "fields": [
+    {
+      "field_id": "product_name",
+      "value": "Варенье из яблок",
+      "required": true,
+      "status": "accepted",
+      "reviewed": true,
+      "source_ids": [
+        "s_product_name"
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "candidates": [
+        {
+          "value": "Варенье из яблок",
+          "source_ids": [
+            "s_product_name"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        }
+      ]
+    },
+    {
+      "field_id": "net_quantity",
+      "value": "250 г",
+      "required": false,
+      "status": "conflict",
+      "reviewed": false,
+      "source_ids": [
+        "s_net_quantity"
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "candidates": [
+        {
+          "value": "250 г",
+          "source_ids": [
+            "s_net_quantity"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        },
+        {
+          "value": "200 г",
+          "source_ids": [
+            "s_manual_quantity"
+          ],
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "field_id": "brand",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "model",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "material",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "dimensions",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "color",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "specifications",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "manufacturer",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    },
+    {
+      "field_id": "ingredients",
+      "value": "Яблоки, сахар",
+      "required": false,
+      "status": "accepted",
+      "reviewed": true,
+      "source_ids": [
+        "s_ingredients"
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "candidates": [
+        {
+          "value": "Яблоки, сахар",
+          "source_ids": [
+            "s_ingredients"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        }
+      ]
+    },
+    {
+      "field_id": "storage_conditions",
+      "value": "Хранить при температуре от +2 до +6 °C",
+      "required": false,
+      "status": "accepted",
+      "reviewed": true,
+      "source_ids": [
+        "s_storage_conditions"
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "candidates": [
+        {
+          "value": "Хранить при температуре от +2 до +6 °C",
+          "source_ids": [
+            "s_storage_conditions"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        }
+      ]
+    },
+    {
+      "field_id": "shelf_life",
+      "value": "30 суток",
+      "required": false,
+      "status": "accepted",
+      "reviewed": true,
+      "source_ids": [
+        "s_shelf_life"
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "candidates": [
+        {
+          "value": "30 суток",
+          "source_ids": [
+            "s_shelf_life"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        }
+      ]
+    },
+    {
+      "field_id": "fat_percent",
+      "value": null,
+      "required": false,
+      "status": "missing",
+      "reviewed": false,
+      "source_ids": [],
+      "confidence": null,
+      "candidates": []
+    }
+  ],
+  "description": {
+    "text": "Название товара: Варенье из яблок\nСостав: Яблоки, сахар\nУсловия хранения: Хранить при температуре от +2 до +6 °C\nСрок годности: 30 суток",
+    "mode": "template",
+    "source_ids": [
+      "s_product_name",
+      "s_ingredients",
+      "s_storage_conditions",
+      "s_shelf_life"
+    ],
+    "reviewed": false,
+    "statements": [
+      {
+        "text": "Название товара: Варенье из яблок",
+        "source_ids": [
+          "s_product_name"
+        ],
+        "asserted_as_user_input": false
+      },
+      {
+        "text": "Состав: Яблоки, сахар",
+        "source_ids": [
+          "s_ingredients"
+        ],
+        "asserted_as_user_input": false
+      },
+      {
+        "text": "Условия хранения: Хранить при температуре от +2 до +6 °C",
+        "source_ids": [
+          "s_storage_conditions"
+        ],
+        "asserted_as_user_input": false
+      },
+      {
+        "text": "Срок годности: 30 суток",
+        "source_ids": [
+          "s_shelf_life"
+        ],
+        "asserted_as_user_input": false
+      }
+    ]
+  },
+  "issues": [
+    {
+      "issue_id": "unresolved_conflict:net_quantity:0",
+      "rule_id": "unresolved_conflict",
+      "severity": "blocker",
+      "message": "Противоречие: Масса, объём или количество",
+      "suggestion": "Сравните источники и явно разрешите противоречие",
+      "field_ids": [
+        "net_quantity"
+      ],
+      "photo_ids": []
+    },
+    {
+      "issue_id": "unreviewed_value:net_quantity:1",
+      "rule_id": "unreviewed_value",
+      "severity": "blocker",
+      "message": "Проверьте: Масса, объём или количество",
+      "suggestion": "Сравните значение с этикеткой и нажмите «Проверено»",
+      "field_ids": [
+        "net_quantity"
+      ],
+      "photo_ids": []
+    },
+    {
+      "issue_id": "description_needs_review:description:2",
+      "rule_id": "description_needs_review",
+      "severity": "blocker",
+      "message": "Описание требует проверки",
+      "suggestion": "Сформируйте текст из принятых полей или подтвердите происхождение своего текста",
+      "field_ids": [
+        "description"
+      ],
+      "photo_ids": []
+    }
+  ],
+  "readiness": {
+    "state": "needs_review",
+    "required_filled": 1,
+    "required_total": 1,
+    "missing_fields": [],
+    "review_fields": [
+      "net_quantity",
+      "description"
+    ],
+    "blocking_issue_ids": [
+      "unresolved_conflict:net_quantity:0",
+      "unreviewed_value:net_quantity:1",
+      "description_needs_review:description:2"
+    ]
+  },
+  "confirmation": null,
+  "ocr": {
+    "mode": "local",
+    "provider": "fixture; not an inference result",
+    "languages": [
+      "ru",
+      "en"
+    ]
+  }
+}

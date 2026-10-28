@@ -1,0 +1,11 @@
+{
+  "expected_revision": 2,
+  "field_updates": [
+    {
+      "field_id": "net_quantity",
+      "value": "250 г",
+      "reviewed": true,
+      "resolve_conflict": true
+    }
+  ]
+}

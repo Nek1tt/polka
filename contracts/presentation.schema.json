@@ -1,0 +1,1226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Card templates, preview and recommendations",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TemplateCatalog"
+    },
+    {
+      "$ref": "#/$defs/CardTemplate"
+    },
+    {
+      "$ref": "#/$defs/CardPreview"
+    },
+    {
+      "$ref": "#/$defs/CardRecommendations"
+    },
+    {
+      "$ref": "#/$defs/OCRReview"
+    }
+  ],
+  "$defs": {
+    "Confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ocr_native_0_1",
+            "ocr_native_0_100",
+            "ocr_aggregate",
+            "classifier_score"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibrated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "kind",
+        "provider",
+        "calibrated"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ocr_native_0_1",
+                  "ocr_aggregate",
+                  "classifier_score"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "maximum": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Photo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "photo_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "readable",
+            "uncertain",
+            "unreadable",
+            "not_analyzed"
+          ]
+        }
+      },
+      "required": [
+        "photo_id",
+        "url",
+        "width",
+        "height",
+        "quality"
+      ]
+    },
+    "Source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ocr_text",
+            "user_input",
+            "classifier"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "photo_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bbox": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "source_id",
+        "kind",
+        "text",
+        "photo_id",
+        "bbox",
+        "confidence",
+        "input_source_ids",
+        "created_at"
+      ]
+    },
+    "Candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "source_ids",
+        "confidence"
+      ]
+    },
+    "Field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "suggested",
+            "accepted",
+            "conflict"
+          ]
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          }
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "field_id",
+        "value",
+        "required",
+        "status",
+        "reviewed",
+        "source_ids",
+        "confidence",
+        "candidates"
+      ]
+    },
+    "CategoryScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        }
+      },
+      "required": [
+        "label",
+        "confidence"
+      ]
+    },
+    "Category": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "selected": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "suggested": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryScore"
+          }
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "selected",
+        "suggested",
+        "reviewed",
+        "source_ids",
+        "scores",
+        "method",
+        "model_version"
+      ]
+    },
+    "Description": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "template",
+            "user",
+            "llm"
+          ]
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "asserted_as_user_input": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "text",
+              "source_ids",
+              "asserted_as_user_input"
+            ]
+          }
+        }
+      },
+      "required": [
+        "text",
+        "mode",
+        "source_ids",
+        "reviewed",
+        "statements"
+      ]
+    },
+    "Issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "warning"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suggestion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "photo_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "issue_id",
+        "rule_id",
+        "severity",
+        "message",
+        "suggestion",
+        "field_ids",
+        "photo_ids"
+      ]
+    },
+    "Readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "needs_information",
+            "needs_review",
+            "ready_to_confirm",
+            "confirmed"
+          ]
+        },
+        "required_filled": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "required_total": {
+          "const": 1
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "review_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "blocking_issue_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "state",
+        "required_filled",
+        "required_total",
+        "missing_fields",
+        "review_fields",
+        "blocking_issue_ids"
+      ]
+    },
+    "Confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmed_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "confirmed_revision",
+        "confirmed_at"
+      ]
+    },
+    "TemplateBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "photos",
+            "fields",
+            "description",
+            "category"
+          ]
+        },
+        "field_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        }
+      },
+      "required": [
+        "block_id",
+        "title",
+        "kind",
+        "field_ids"
+      ]
+    },
+    "CardTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supported_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TemplateBlock"
+          }
+        },
+        "description_styles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "structured"
+            ]
+          }
+        }
+      },
+      "required": [
+        "template_id",
+        "version",
+        "name",
+        "supported_categories",
+        "blocks",
+        "description_styles"
+      ]
+    },
+    "ProfileField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field_id",
+        "label",
+        "required"
+      ]
+    },
+    "CategoryProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supported": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProfileField"
+          }
+        }
+      },
+      "required": [
+        "category",
+        "label",
+        "supported",
+        "fields"
+      ]
+    },
+    "TemplateCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CardTemplate"
+          }
+        },
+        "category_profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryProfile"
+          }
+        }
+      },
+      "required": [
+        "templates",
+        "category_profiles"
+      ]
+    },
+    "PreviewBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "photos",
+            "fields",
+            "description",
+            "category"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Field"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Photo"
+          }
+        },
+        "description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Description"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Category"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "block_id",
+        "title",
+        "kind",
+        "fields",
+        "photos",
+        "description",
+        "category"
+      ]
+    },
+    "CardPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "2.2"
+        },
+        "provider_mode": {
+          "type": "string",
+          "enum": [
+            "live",
+            "fixture",
+            "recorded_demo"
+          ]
+        },
+        "card_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "card_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "template_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "template_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "template_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "is_draft": {
+          "type": "boolean"
+        },
+        "category_profile": {
+          "$ref": "#/$defs/CategoryProfile"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PreviewBlock"
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Source"
+          }
+        },
+        "readiness": {
+          "$ref": "#/$defs/Readiness"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Issue"
+          }
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "schema_version",
+        "provider_mode",
+        "card_id",
+        "card_revision",
+        "template_id",
+        "template_version",
+        "template_name",
+        "is_draft",
+        "category_profile",
+        "blocks",
+        "sources",
+        "readiness",
+        "warnings",
+        "generated_at",
+        "expires_at"
+      ]
+    },
+    "Recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recommendation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "card_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "warning"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "enum": [
+            "photos",
+            "text",
+            "category",
+            "characteristics"
+          ]
+        },
+        "action_type": {
+          "type": "string",
+          "enum": [
+            "resolve_conflict",
+            "provide_information",
+            "enrich_optional",
+            "review_value",
+            "review_description",
+            "replace_photos",
+            "verify_photo"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "photo_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "issue_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "question": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          }
+        }
+      },
+      "required": [
+        "recommendation_id",
+        "card_revision",
+        "rule_id",
+        "priority",
+        "area",
+        "action_type",
+        "reason",
+        "action",
+        "field_ids",
+        "photo_ids",
+        "source_ids",
+        "issue_ids",
+        "question",
+        "candidates"
+      ]
+    },
+    "CardRecommendations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "card_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_mode": {
+          "type": "string",
+          "enum": [
+            "live",
+            "fixture",
+            "recorded_demo"
+          ]
+        },
+        "card_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "readiness": {
+          "$ref": "#/$defs/Readiness"
+        },
+        "recommendations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Recommendation"
+          }
+        },
+        "photo_analysis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PhotoAnalysis"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "card_id",
+        "provider_mode",
+        "card_revision",
+        "generated_at",
+        "readiness",
+        "recommendations"
+      ]
+    },
+    "OCRLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "photo_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bbox": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "group": {
+          "type": "string",
+          "enum": [
+            "useful",
+            "other",
+            "doubtful"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "suggested_value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "source_ids",
+        "photo_id",
+        "bbox",
+        "confidence",
+        "group",
+        "reason",
+        "field_id",
+        "suggested_value"
+      ]
+    },
+    "OCRReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "card_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "card_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "filter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "raw": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "useful": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "other": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "doubtful": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "duplicates": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "raw",
+            "useful",
+            "other",
+            "doubtful",
+            "duplicates"
+          ]
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OCRLine"
+          }
+        },
+        "notice": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "card_id",
+        "card_revision",
+        "filter_version",
+        "counts",
+        "warnings",
+        "lines",
+        "notice"
+      ]
+    },
+    "PhotoAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Photo"
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Issue"
+          }
+        }
+      },
+      "required": [
+        "job_id",
+        "requested_at",
+        "photos",
+        "issues"
+      ]
+    }
+  }
+}

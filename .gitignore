@@ -1,0 +1,34 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+service-account*.json
+# Generated state, uploads and downloaded models
+runtime/
+test-runtime/
+model-cache/
+node_modules/
+.venv/
+.venv-*/
+.install-tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite*
+*.db
+*.db-*
+*.log
+*.zip
+*.bundle
+# Local editors and agent instructions
+.vscode/
+.idea/
+.agents/
+.codex/
+.DS_Store
+Thumbs.db

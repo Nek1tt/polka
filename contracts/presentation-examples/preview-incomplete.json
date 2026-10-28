@@ -1,0 +1,496 @@
+{
+  "schema_version": "2.2",
+  "provider_mode": "fixture",
+  "card_id": "card_example",
+  "card_revision": 1,
+  "template_id": "market_v1",
+  "template_version": 1,
+  "template_name": "Витрина",
+  "is_draft": true,
+  "category_profile": {
+    "category": "unknown",
+    "label": "Любой товар",
+    "supported": true,
+    "fields": [
+      {
+        "field_id": "product_name",
+        "label": "Название товара",
+        "required": true
+      },
+      {
+        "field_id": "net_quantity",
+        "label": "Масса, объём или количество",
+        "required": false
+      },
+      {
+        "field_id": "brand",
+        "label": "Бренд",
+        "required": false
+      },
+      {
+        "field_id": "model",
+        "label": "Модель / артикул",
+        "required": false
+      },
+      {
+        "field_id": "material",
+        "label": "Материал",
+        "required": false
+      },
+      {
+        "field_id": "dimensions",
+        "label": "Размеры",
+        "required": false
+      },
+      {
+        "field_id": "color",
+        "label": "Цвет",
+        "required": false
+      },
+      {
+        "field_id": "specifications",
+        "label": "Другие характеристики",
+        "required": false
+      },
+      {
+        "field_id": "manufacturer",
+        "label": "Производитель",
+        "required": false
+      },
+      {
+        "field_id": "ingredients",
+        "label": "Состав",
+        "required": false
+      },
+      {
+        "field_id": "storage_conditions",
+        "label": "Условия хранения",
+        "required": false
+      },
+      {
+        "field_id": "shelf_life",
+        "label": "Срок годности",
+        "required": false
+      },
+      {
+        "field_id": "fat_percent",
+        "label": "Жирность",
+        "required": false
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "block_id": "gallery",
+      "title": "Фотографии товара",
+      "kind": "photos",
+      "fields": [],
+      "photos": [
+        {
+          "photo_id": "photo_example",
+          "url": "/api/v1/photos/photo_example",
+          "width": 1200,
+          "height": 1600,
+          "quality": "readable"
+        }
+      ],
+      "description": null,
+      "category": null
+    },
+    {
+      "block_id": "title",
+      "title": "Название товара",
+      "kind": "fields",
+      "fields": [
+        {
+          "field_id": "product_name",
+          "value": null,
+          "required": true,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        }
+      ],
+      "photos": [],
+      "description": null,
+      "category": null
+    },
+    {
+      "block_id": "category",
+      "title": "Тип товара (необязательно)",
+      "kind": "category",
+      "fields": [],
+      "photos": [],
+      "description": null,
+      "category": {
+        "selected": "unknown",
+        "suggested": "unknown",
+        "reviewed": false,
+        "source_ids": [],
+        "scores": [],
+        "method": "Explicit text headings; no category model",
+        "model_version": "rules-2"
+      }
+    },
+    {
+      "block_id": "characteristics",
+      "title": "О товаре",
+      "kind": "fields",
+      "fields": [
+        {
+          "field_id": "net_quantity",
+          "value": "250 г",
+          "required": false,
+          "status": "accepted",
+          "reviewed": true,
+          "source_ids": [
+            "s_net_quantity"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          },
+          "candidates": [
+            {
+              "value": "250 г",
+              "source_ids": [
+                "s_net_quantity"
+              ],
+              "confidence": {
+                "value": 0.94,
+                "kind": "ocr_native_0_1",
+                "provider": "example_only",
+                "calibrated": false
+              }
+            }
+          ]
+        },
+        {
+          "field_id": "brand",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "model",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "material",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "dimensions",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "color",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "specifications",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "manufacturer",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "ingredients",
+          "value": "Яблоки, сахар",
+          "required": false,
+          "status": "accepted",
+          "reviewed": true,
+          "source_ids": [
+            "s_ingredients"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          },
+          "candidates": [
+            {
+              "value": "Яблоки, сахар",
+              "source_ids": [
+                "s_ingredients"
+              ],
+              "confidence": {
+                "value": 0.94,
+                "kind": "ocr_native_0_1",
+                "provider": "example_only",
+                "calibrated": false
+              }
+            }
+          ]
+        },
+        {
+          "field_id": "storage_conditions",
+          "value": "Хранить при температуре от +2 до +6 °C",
+          "required": false,
+          "status": "accepted",
+          "reviewed": true,
+          "source_ids": [
+            "s_storage_conditions"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          },
+          "candidates": [
+            {
+              "value": "Хранить при температуре от +2 до +6 °C",
+              "source_ids": [
+                "s_storage_conditions"
+              ],
+              "confidence": {
+                "value": 0.94,
+                "kind": "ocr_native_0_1",
+                "provider": "example_only",
+                "calibrated": false
+              }
+            }
+          ]
+        },
+        {
+          "field_id": "shelf_life",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        },
+        {
+          "field_id": "fat_percent",
+          "value": null,
+          "required": false,
+          "status": "missing",
+          "reviewed": false,
+          "source_ids": [],
+          "confidence": null,
+          "candidates": []
+        }
+      ],
+      "photos": [],
+      "description": null,
+      "category": null
+    },
+    {
+      "block_id": "description",
+      "title": "Описание",
+      "kind": "description",
+      "fields": [],
+      "photos": [],
+      "description": {
+        "text": "Масса, объём или количество: 250 г\nСостав: Яблоки, сахар\nУсловия хранения: Хранить при температуре от +2 до +6 °C",
+        "mode": "template",
+        "source_ids": [
+          "s_net_quantity",
+          "s_ingredients",
+          "s_storage_conditions"
+        ],
+        "reviewed": true,
+        "statements": [
+          {
+            "text": "Масса, объём или количество: 250 г",
+            "source_ids": [
+              "s_net_quantity"
+            ],
+            "asserted_as_user_input": false
+          },
+          {
+            "text": "Состав: Яблоки, сахар",
+            "source_ids": [
+              "s_ingredients"
+            ],
+            "asserted_as_user_input": false
+          },
+          {
+            "text": "Условия хранения: Хранить при температуре от +2 до +6 °C",
+            "source_ids": [
+              "s_storage_conditions"
+            ],
+            "asserted_as_user_input": false
+          }
+        ]
+      },
+      "category": null
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "s_product_name",
+      "kind": "ocr_text",
+      "text": "Варенье из яблок",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.1,
+        0.9,
+        0.19
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_net_quantity",
+      "kind": "ocr_text",
+      "text": "250 г",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.22,
+        0.9,
+        0.31
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_ingredients",
+      "kind": "ocr_text",
+      "text": "Яблоки, сахар",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.33999999999999997,
+        0.9,
+        0.43
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_storage_conditions",
+      "kind": "ocr_text",
+      "text": "Хранить при температуре от +2 до +6 °C",
+      "photo_id": "photo_example",
+      "bbox": [
+        0.1,
+        0.45999999999999996,
+        0.9,
+        0.55
+      ],
+      "confidence": {
+        "value": 0.94,
+        "kind": "ocr_native_0_1",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [],
+      "created_at": "2026-10-19T12:00:00Z"
+    },
+    {
+      "source_id": "s_category",
+      "kind": "classifier",
+      "text": "jam",
+      "photo_id": null,
+      "bbox": null,
+      "confidence": {
+        "value": 0.88,
+        "kind": "classifier_score",
+        "provider": "example_only",
+        "calibrated": false
+      },
+      "input_source_ids": [
+        "s_product_name",
+        "s_ingredients"
+      ],
+      "created_at": "2026-10-19T12:00:00Z"
+    }
+  ],
+  "readiness": {
+    "state": "needs_information",
+    "required_filled": 0,
+    "required_total": 1,
+    "missing_fields": [
+      "product_name"
+    ],
+    "review_fields": [],
+    "blocking_issue_ids": [
+      "missing_required:product_name:0"
+    ]
+  },
+  "warnings": [
+    {
+      "issue_id": "missing_required:product_name:0",
+      "rule_id": "missing_required",
+      "severity": "blocker",
+      "message": "Не заполнено: Название товара",
+      "suggestion": "Укажите сведения с упаковки или из собственных данных",
+      "field_ids": [
+        "product_name"
+      ],
+      "photo_ids": []
+    }
+  ],
+  "generated_at": "2026-10-26T21:57:36.626204+00:00",
+  "expires_at": "2026-10-20T12:00:00Z"
+}

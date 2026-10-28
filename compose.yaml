@@ -1,0 +1,15 @@
+services:
+  card:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ALLOWED_ORIGINS: http://localhost:8000,http://127.0.0.1:8000
+    volumes:
+      - card-data:/data
+    restart: unless-stopped
+volumes:
+  card-data:

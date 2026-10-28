@@ -1,0 +1,672 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "2.2"
+    },
+    "card_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provider_mode": {
+      "type": "string",
+      "enum": [
+        "live",
+        "fixture",
+        "recorded_demo"
+      ]
+    },
+    "ruleset_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Photo"
+      },
+      "minItems": 0,
+      "maxItems": 3
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Source"
+      }
+    },
+    "category": {
+      "$ref": "#/$defs/Category"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Field"
+      },
+      "minItems": 1,
+      "maxItems": 80
+    },
+    "description": {
+      "$ref": "#/$defs/Description"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Issue"
+      }
+    },
+    "readiness": {
+      "$ref": "#/$defs/Readiness"
+    },
+    "confirmation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Confirmation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ocr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "provider",
+        "languages"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "local",
+            "api"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "const": [
+            "ru",
+            "en"
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "card_id",
+    "revision",
+    "created_at",
+    "expires_at",
+    "provider_mode",
+    "ruleset_version",
+    "photos",
+    "sources",
+    "category",
+    "fields",
+    "description",
+    "issues",
+    "readiness",
+    "confirmation",
+    "ocr"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductCard v2",
+  "description": "Универсальный черновик; обязательно только название товара. Остальные характеристики необязательны.",
+  "$defs": {
+    "Confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ocr_native_0_1",
+            "ocr_native_0_100",
+            "ocr_aggregate",
+            "classifier_score"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calibrated": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "kind",
+        "provider",
+        "calibrated"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ocr_native_0_1",
+                  "ocr_aggregate",
+                  "classifier_score"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "maximum": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Photo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "photo_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "readable",
+            "uncertain",
+            "unreadable",
+            "not_analyzed"
+          ]
+        }
+      },
+      "required": [
+        "photo_id",
+        "url",
+        "width",
+        "height",
+        "quality"
+      ]
+    },
+    "Source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ocr_text",
+            "user_input",
+            "classifier"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "photo_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bbox": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "source_id",
+        "kind",
+        "text",
+        "photo_id",
+        "bbox",
+        "confidence",
+        "input_source_ids",
+        "created_at"
+      ]
+    },
+    "Candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "source_ids",
+        "confidence"
+      ]
+    },
+    "Field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "suggested",
+            "accepted",
+            "conflict"
+          ]
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Confidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          }
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "field_id",
+        "value",
+        "required",
+        "status",
+        "reviewed",
+        "source_ids",
+        "confidence",
+        "candidates"
+      ]
+    },
+    "CategoryScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        }
+      },
+      "required": [
+        "label",
+        "confidence"
+      ]
+    },
+    "Category": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "selected": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "suggested": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "scores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CategoryScore"
+          }
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "selected",
+        "suggested",
+        "reviewed",
+        "source_ids",
+        "scores",
+        "method",
+        "model_version"
+      ]
+    },
+    "Description": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "template",
+            "user",
+            "llm"
+          ]
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "asserted_as_user_input": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "text",
+              "source_ids",
+              "asserted_as_user_input"
+            ]
+          }
+        }
+      },
+      "required": [
+        "text",
+        "mode",
+        "source_ids",
+        "reviewed",
+        "statements"
+      ]
+    },
+    "Issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "warning"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "suggestion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "photo_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "issue_id",
+        "rule_id",
+        "severity",
+        "message",
+        "suggestion",
+        "field_ids",
+        "photo_ids"
+      ]
+    },
+    "Readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "needs_information",
+            "needs_review",
+            "ready_to_confirm",
+            "confirmed"
+          ]
+        },
+        "required_filled": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "required_total": {
+          "const": 1
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "review_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "blocking_issue_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "state",
+        "required_filled",
+        "required_total",
+        "missing_fields",
+        "review_fields",
+        "blocking_issue_ids"
+      ]
+    },
+    "Confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmed_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "confirmed_revision",
+        "confirmed_at"
+      ]
+    }
+  }
+}

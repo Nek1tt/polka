@@ -1,0 +1,12 @@
+fastapi==0.148.0
+httpx==0.28.1
+jsonschema==4.26.0
+pillow==13.0.0
+psutil==7.2.2
+pytest==9.1.1
+python-multipart==0.0.32
+PyYAML==6.0.3
+uvicorn==0.54.0
+rapidocr==3.10.0
+onnxruntime==1.24.4
+python-dotenv==1.2.1

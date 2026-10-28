@@ -1,0 +1,107 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "description_sentences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "uniqueItems": true,
+            "maxItems": 80,
+            "minItems": 1
+          }
+        },
+        "required": [
+          "text",
+          "fact_ids"
+        ]
+      },
+      "maxItems": 12
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "clarity",
+              "repetition",
+              "contradiction"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800
+          },
+          "fragment": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "uniqueItems": true,
+            "maxItems": 80
+          }
+        },
+        "required": [
+          "kind",
+          "message",
+          "fragment",
+          "fact_ids"
+        ]
+      },
+      "maxItems": 10
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800
+          },
+          "suggested_label": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "question",
+          "suggested_label"
+        ]
+      },
+      "maxItems": 5
+    }
+  },
+  "required": [
+    "description_sentences",
+    "recommendations",
+    "questions"
+  ]
+}

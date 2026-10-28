@@ -1,0 +1,92 @@
+{
+  "card_id": "card_example",
+  "provider_mode": "fixture",
+  "card_revision": 2,
+  "generated_at": "2026-10-26T21:57:36.660637+00:00",
+  "readiness": {
+    "state": "needs_review",
+    "required_filled": 1,
+    "required_total": 1,
+    "missing_fields": [],
+    "review_fields": [
+      "net_quantity",
+      "description"
+    ],
+    "blocking_issue_ids": [
+      "unresolved_conflict:net_quantity:0",
+      "unreviewed_value:net_quantity:1",
+      "description_needs_review:description:2"
+    ]
+  },
+  "recommendations": [
+    {
+      "recommendation_id": "7d8e6cc1bfe2be26a8612661",
+      "card_revision": 2,
+      "rule_id": "unresolved_conflict",
+      "priority": "blocker",
+      "area": "characteristics",
+      "action_type": "resolve_conflict",
+      "reason": "Противоречие: Масса, объём или количество",
+      "action": "Сравните источники и явно разрешите противоречие",
+      "field_ids": [
+        "net_quantity"
+      ],
+      "photo_ids": [],
+      "source_ids": [
+        "s_net_quantity",
+        "s_manual_quantity"
+      ],
+      "issue_ids": [
+        "unresolved_conflict:net_quantity:0",
+        "unreviewed_value:net_quantity:1"
+      ],
+      "question": "Какое значение поля «Масса, объём или количество» верно? Сравните источники.",
+      "candidates": [
+        {
+          "value": "250 г",
+          "source_ids": [
+            "s_net_quantity"
+          ],
+          "confidence": {
+            "value": 0.94,
+            "kind": "ocr_native_0_1",
+            "provider": "example_only",
+            "calibrated": false
+          }
+        },
+        {
+          "value": "200 г",
+          "source_ids": [
+            "s_manual_quantity"
+          ],
+          "confidence": null
+        }
+      ]
+    },
+    {
+      "recommendation_id": "18732e98339775f964f0c4e3",
+      "card_revision": 2,
+      "rule_id": "description_needs_review",
+      "priority": "blocker",
+      "area": "text",
+      "action_type": "review_description",
+      "reason": "Описание требует проверки",
+      "action": "Сначала проверьте характеристики, затем пересоберите и проверьте описание.",
+      "field_ids": [
+        "description"
+      ],
+      "photo_ids": [],
+      "source_ids": [
+        "s_product_name",
+        "s_ingredients",
+        "s_storage_conditions",
+        "s_shelf_life"
+      ],
+      "issue_ids": [
+        "description_needs_review:description:2"
+      ],
+      "question": "Соответствует ли текущее описание принятым фактам?",
+      "candidates": []
+    }
+  ]
+}

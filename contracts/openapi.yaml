@@ -1,0 +1,2445 @@
+openapi: 3.1.0
+info:
+  title: Полка — API
+  version: 2.4.2
+  description: Полка 2.4.2. Обязательно только название; остальные характеристики необязательны. Проверка галочкой
+    сохраняет значение, OCR переносится отдельным действием. Устаревшие required/required_fields игнорируются. LLM
+    опциональна, сохранение и финальное подтверждение раздельны.
+servers:
+- url: /
+  description: Тот же адрес и порт, с которого открыт API; поддерживает HTTPS.
+security:
+- SessionCookie: []
+paths:
+  /health/live:
+    get:
+      operationId: healthLive
+      security: []
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /health/ready:
+    get:
+      operationId: healthReady
+      security: []
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503': &id001
+          $ref: '#/components/responses/Error'
+  /api/v1/jobs:
+    post:
+      operationId: createJob
+      security: []
+      description: 'Создаёт сессию при отсутствии cookie. files: 1–3 JPEG/PNG, до 5 MiB каждый. initial_data — JSON-строка
+        по InitialData; не JSON body. Ограничения пикселей и суммарного размера см. PRODUCT.'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+                  maxItems: 3
+                initial_data:
+                  type: string
+                  contentMediaType: application/json
+                  description: JSON по схеме InitialData, по умолчанию {}
+                  default: '{}'
+              required:
+              - files
+      responses:
+        '202':
+          description: Поставлено в очередь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+          headers:
+            Set-Cookie:
+              description: card_session; HttpOnly; SameSite=Lax; Secure для HTTPS
+              schema: &id003
+                type: string
+        '413': *id001
+        '415': *id001
+        '422': *id001
+        '429': *id001
+        '503': *id001
+        '403':
+          $ref: '#/components/responses/Error'
+  /api/v1/jobs/{job_id}:
+    parameters:
+    - name: job_id
+      in: path
+      required: true
+      schema: &id002
+        type: string
+        minLength: 1
+    get:
+      operationId: getJob
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404': *id001
+  /api/v1/cards/{card_id}:
+    parameters:
+    - name: card_id
+      in: path
+      required: true
+      schema: *id002
+    get:
+      operationId: getCard
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404': *id001
+    patch:
+      operationId: patchCard
+      description: Сервер создаёт user_input источники, обновляет ревизию и пересчитывает проверки. Нельзя задавать
+        scores/state/confirmation напрямую.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchCard'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404': *id001
+        '409': *id001
+        '422': *id001
+        '403':
+          $ref: '#/components/responses/Error'
+    delete:
+      operationId: deleteCard
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDeleted'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: &id011
+          type: string
+          minLength: 1
+      - name: expected_revision
+        in: query
+        required: true
+        schema: &id012
+          type: integer
+          minimum: 1
+      description: Удаление товара, его подсказок и неиспользуемых фото. Требует текущую ревизию и сессию. Активный
+        OCR блокирует удаление (409).
+  /api/v1/cards/{card_id}/confirm:
+    parameters:
+    - name: card_id
+      in: path
+      required: true
+      schema: *id002
+    post:
+      operationId: confirmCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmCard'
+      description: Принимает текущую ready_to_confirm ревизию. Успех увеличивает revision и сохраняет confirmed_revision.
+        Повтор подтверждённой текущей ревизии идемпотентен.
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404': *id001
+        '409': *id001
+        '422': *id001
+        '403':
+          $ref: '#/components/responses/Error'
+  /api/v1/cards/{card_id}/export:
+    parameters:
+    - name: card_id
+      in: path
+      required: true
+      schema: *id002
+    get:
+      operationId: exportCard
+      description: Только confirmed текущей сессии. format=text возвращает проверенное описание без технических
+        источников; json сохраняет полный интеграционный контракт.
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+            text/plain:
+              schema:
+                type: string
+          headers:
+            Content-Disposition:
+              schema: *id003
+              description: attachment; filename="product-card.json"
+        '404': *id001
+        '409': *id001
+      parameters:
+      - name: format
+        in: query
+        schema:
+          type: string
+          enum:
+          - json
+          - text
+          default: json
+  /api/v1/photos/{photo_id}:
+    parameters:
+    - name: photo_id
+      in: path
+      required: true
+      schema: *id002
+    get:
+      operationId: getPhoto
+      responses:
+        '200':
+          description: Фото своей сессии
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404': *id001
+  /api/v1/cards/{card_id}/description-template:
+    post:
+      operationId: regenerateDescription
+      description: Пересобрать описание только из принятых полей. Сбрасывает подтверждение и увеличивает ревизию.
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmCard'
+      responses:
+        '200':
+          description: Обновлённая карточка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+  /api/v1/config:
+    get:
+      operationId: getConfig
+      security: []
+      responses:
+        '200':
+          description: Общие подписи и режим обработки
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  labels:
+                    type: object
+                    additionalProperties: &id004
+                      type: string
+                  required_total:
+                    const: 1
+                  processing: *id004
+                  classifier: *id004
+                  ocr_modes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OCRMode'
+                  attribute_catalog:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        field_id: &id014
+                          type: string
+                          pattern: ^[a-z][a-z0-9_]{0,63}$
+                        label: &id013
+                          type: string
+                          minLength: 1
+                      required:
+                      - field_id
+                      - label
+                  llm:
+                    $ref: '#/components/schemas/LLMConfig'
+                required:
+                - labels
+                - required_total
+                - processing
+                - classifier
+                - ocr_modes
+                - attribute_catalog
+                - llm
+  /api/v1/templates:
+    get:
+      operationId: listTemplates
+      description: Каталог версий шаблонов без товарных фактов и профили категорий из серверного домена.
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateCatalog'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+      security: []
+  /api/v1/templates/{template_id}:
+    get:
+      operationId: getTemplate
+      description: 'Точная версия шаблона. Неизвестный ID или версия: 404.'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardTemplate'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: template_id
+        in: path
+        required: true
+        schema: &id005
+          type: string
+          minLength: 1
+      - name: version
+        in: query
+        required: true
+        schema: &id006
+          type: integer
+          minimum: 1
+      security: []
+  /api/v1/cards/{card_id}/preview:
+    get:
+      operationId: previewCard
+      description: 'Приватная read-only проекция точной ревизии. Все шаблоны универсальны. Неизвестная версия шаблона:
+        404. Не подтверждает карточку. warnings содержит все текущие Issue, включая blocker.'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardPreview'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - &id007
+        name: card_id
+        in: path
+        required: true
+        schema: *id005
+      - &id008
+        name: template_id
+        in: query
+        required: true
+        schema: *id005
+      - &id009
+        name: template_version
+        in: query
+        required: true
+        schema: *id006
+      - &id010
+        name: expected_revision
+        in: query
+        required: true
+        schema: *id006
+  /api/v1/cards/{card_id}/preview.html:
+    get:
+      operationId: previewCardHtml
+      description: Экранированный самостоятельный HTML той же проекции. Фото требуют ту же cookie; публичная ссылка
+        не создаётся. No-store.
+      responses:
+        '200':
+          description: Успех
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - *id007
+      - *id008
+      - *id009
+      - *id010
+      - name: palette
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - strata
+          - ocean
+          - sage
+          - clay
+          default: strata
+  /api/v1/cards/{card_id}/recommendations:
+    get:
+      operationId: getCardRecommendations
+      description: 'Действия по сохранённым сведениям и последнему успешному OCR-анализу точного набора фото. photo_analysis
+        содержит задачу, время запуска, фото и диагностические замечания; null, если актуального результата нет.
+        Только чтение: факты, ревизия, подтверждение и readiness сохранённой карточки не меняются.'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRecommendations'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id005
+      - name: expected_revision
+        in: query
+        required: true
+        schema: *id006
+  /api/v1/version:
+    get:
+      operationId: getVersionInfo
+      description: Версия реально запущенного backend и доступность функций в API и редакторе. Не содержит путей
+        установки.
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+      security: []
+  /api/v1/cards/{card_id}/ocr-review:
+    get:
+      operationId: getOCRReview
+      description: 'Приватный отбор OCR-строк точной ревизии: useful/other/doubtful, точные повторы объединены.
+        Исходные Source и карточка не меняются. Отбор по правилам не подтверждает факты и не восстанавливает текст.'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OCRReview'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id005
+      - name: expected_revision
+        in: query
+        required: true
+        schema: *id006
+  /api/v1/cards:
+    post:
+      operationId: createManualCard
+      responses:
+        '201':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualCardCreate'
+      description: Пустой ручной черновик без OCR и фотографий. Создаёт приватную сессию, модель не требуется; исходные
+        значения непроверенные.
+    get:
+      operationId: listCards
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardList'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      description: Список неистёкших товаров текущей приватной сессии. Внутренние OCR-результаты не включаются.
+        Карточки хранятся 24 часа по умолчанию.
+  /api/v1/cards/{card_id}/photos:
+    post:
+      operationId: attachCardPhotos
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id011
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expected_revision: *id012
+                files:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: string
+                    format: binary
+              required:
+              - expected_revision
+              - files
+      description: Добавить фото без запуска модели; максимум три. expected_revision защищает правки. Снимает подтверждение.
+  /api/v1/cards/{card_id}/ocr-jobs:
+    post:
+      operationId: createSuggestionJob
+      responses:
+        '202':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id011
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestionJobCreate'
+      description: Явно запустить local/api по прикреплённым фото. Результат отдельный, рабочая карточка не меняется.
+        Только api передаёт фото Google.
+  /api/v1/cards/{card_id}/ocr-suggestions:
+    get:
+      operationId: getCardSuggestions
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardSuggestions'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id011
+      - name: job_id
+        in: query
+        required: true
+        schema: *id011
+  /api/v1/cards/{card_id}/accept-suggestion:
+    post:
+      operationId: acceptCardSuggestion
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '413':
+          $ref: '#/components/responses/Error'
+        '415':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id011
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptSuggestion'
+      description: Принять ровно одну существующую строку с её настоящими источниками. Значение вычисляет сервер;
+        произвольный текст/score не принимается. Заполненное поле требует replace_existing=true; поле остаётся непроверенным.
+        Истёкшая/чужая задача недоступна.
+  /api/v1/cards/{card_id}/text-assistance:
+    post:
+      operationId: text_assistance
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id013
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextAssistanceRequest'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextAssistance'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+  /api/v1/cards/{card_id}/apply-text-assistance:
+    post:
+      operationId: apply_text_assistance
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id013
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyTextAssistance'
+      responses:
+        '200':
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: card_session
+  schemas:
+    Confidence:
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: number
+          minimum: 0
+          maximum: 100
+        kind:
+          type: string
+          enum:
+          - ocr_native_0_1
+          - ocr_native_0_100
+          - ocr_aggregate
+          - classifier_score
+        provider:
+          type: string
+          minLength: 1
+        calibrated:
+          type: boolean
+      required:
+      - value
+      - kind
+      - provider
+      - calibrated
+      allOf:
+      - if:
+          properties:
+            kind:
+              enum:
+              - ocr_native_0_1
+              - ocr_aggregate
+              - classifier_score
+        then:
+          properties:
+            value:
+              maximum: 1
+    Photo:
+      type: object
+      additionalProperties: false
+      properties:
+        photo_id:
+          type: string
+          minLength: 1
+        url:
+          type: string
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        quality:
+          type: string
+          enum:
+          - readable
+          - uncertain
+          - unreadable
+          - not_analyzed
+      required:
+      - photo_id
+      - url
+      - width
+      - height
+      - quality
+    Source:
+      type: object
+      additionalProperties: false
+      properties:
+        source_id:
+          type: string
+          minLength: 1
+        kind:
+          type: string
+          enum:
+          - ocr_text
+          - user_input
+          - classifier
+        text:
+          type: string
+        photo_id:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        bbox:
+          anyOf:
+          - type: array
+            items:
+              type: number
+              minimum: 0
+              maximum: 1
+            minItems: 4
+            maxItems: 4
+          - type: 'null'
+        confidence:
+          anyOf:
+          - $ref: '#/components/schemas/Confidence'
+          - type: 'null'
+        input_source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - source_id
+      - kind
+      - text
+      - photo_id
+      - bbox
+      - confidence
+      - input_source_ids
+      - created_at
+    Candidate:
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: string
+          minLength: 1
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          minItems: 1
+          uniqueItems: true
+        confidence:
+          anyOf:
+          - $ref: '#/components/schemas/Confidence'
+          - type: 'null'
+      required:
+      - value
+      - source_ids
+      - confidence
+    Field:
+      type: object
+      additionalProperties: false
+      properties:
+        field_id: *id014
+        value:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        required:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - missing
+          - suggested
+          - accepted
+          - conflict
+        reviewed:
+          type: boolean
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+        confidence:
+          anyOf:
+          - $ref: '#/components/schemas/Confidence'
+          - type: 'null'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 100
+      required:
+      - field_id
+      - value
+      - required
+      - status
+      - reviewed
+      - source_ids
+      - confidence
+      - candidates
+    CategoryScore:
+      type: object
+      additionalProperties: false
+      properties:
+        label:
+          type: string
+          minLength: 1
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+      required:
+      - label
+      - confidence
+    Category:
+      type: object
+      additionalProperties: false
+      properties:
+        selected:
+          type: string
+          minLength: 1
+          maxLength: 200
+        suggested:
+          type: string
+          minLength: 1
+          maxLength: 200
+        reviewed:
+          type: boolean
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+        scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryScore'
+        method:
+          type: string
+          minLength: 1
+        model_version:
+          type: string
+          minLength: 1
+      required:
+      - selected
+      - suggested
+      - reviewed
+      - source_ids
+      - scores
+      - method
+      - model_version
+    Description:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+        mode:
+          type: string
+          enum:
+          - template
+          - user
+          - llm
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+        reviewed:
+          type: boolean
+        statements:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              text:
+                type: string
+                minLength: 1
+              source_ids:
+                type: array
+                items:
+                  type: string
+                  minLength: 1
+                minItems: 1
+                uniqueItems: true
+              asserted_as_user_input:
+                type: boolean
+            required:
+            - text
+            - source_ids
+            - asserted_as_user_input
+      required:
+      - text
+      - mode
+      - source_ids
+      - reviewed
+      - statements
+    Issue:
+      type: object
+      additionalProperties: false
+      properties:
+        issue_id:
+          type: string
+          minLength: 1
+        rule_id:
+          type: string
+          minLength: 1
+        severity:
+          type: string
+          enum:
+          - blocker
+          - warning
+        message:
+          type: string
+          minLength: 1
+        suggestion:
+          type: string
+          minLength: 1
+        field_ids:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        photo_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+      required:
+      - issue_id
+      - rule_id
+      - severity
+      - message
+      - suggestion
+      - field_ids
+      - photo_ids
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        state: &id021
+          type: string
+          enum:
+          - needs_information
+          - needs_review
+          - ready_to_confirm
+          - confirmed
+        required_filled:
+          type: integer
+          minimum: 0
+          maximum: 1
+        required_total:
+          const: 1
+        missing_fields:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        review_fields:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        blocking_issue_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+      required:
+      - state
+      - required_filled
+      - required_total
+      - missing_fields
+      - review_fields
+      - blocking_issue_ids
+    Confirmation:
+      type: object
+      additionalProperties: false
+      properties:
+        confirmed_revision:
+          type: integer
+          minimum: 1
+        confirmed_at:
+          type: string
+          format: date-time
+      required:
+      - confirmed_revision
+      - confirmed_at
+    Card:
+      type: object
+      additionalProperties: false
+      properties:
+        schema_version:
+          const: '2.2'
+        card_id:
+          type: string
+          minLength: 1
+        revision:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        provider_mode:
+          type: string
+          enum:
+          - live
+          - fixture
+          - recorded_demo
+        ruleset_version:
+          type: string
+          minLength: 1
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+          minItems: 0
+          maxItems: 3
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        category:
+          $ref: '#/components/schemas/Category'
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+          minItems: 1
+          maxItems: 80
+        description:
+          $ref: '#/components/schemas/Description'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        readiness:
+          $ref: '#/components/schemas/Readiness'
+        confirmation:
+          anyOf:
+          - $ref: '#/components/schemas/Confirmation'
+          - type: 'null'
+        ocr:
+          type: object
+          additionalProperties: false
+          required:
+          - mode
+          - provider
+          - languages
+          properties:
+            mode:
+              enum:
+              - local
+              - api
+            provider:
+              type: string
+              minLength: 1
+            languages:
+              const:
+              - ru
+              - en
+      required:
+      - schema_version
+      - card_id
+      - revision
+      - created_at
+      - expires_at
+      - provider_mode
+      - ruleset_version
+      - photos
+      - sources
+      - category
+      - fields
+      - description
+      - issues
+      - readiness
+      - confirmation
+      - ocr
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      properties:
+        code: *id002
+        message: *id002
+        request_id: *id002
+        details:
+          type: object
+          additionalProperties: true
+      required:
+      - code
+      - message
+      - request_id
+      - details
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+      required:
+      - error
+    Job:
+      type: object
+      additionalProperties: false
+      properties:
+        job_id: *id002
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+        stage:
+          type: string
+          enum:
+          - queued
+          - ocr
+          - classification
+          - validation
+          - draft
+          - done
+          - failed
+        result_card_id:
+          anyOf:
+          - *id002
+          - type: 'null'
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorDetail'
+          - type: 'null'
+        created_at: &id015
+          type: string
+          format: date-time
+        expires_at: *id015
+        ocr_mode:
+          type: string
+          enum:
+          - local
+          - api
+      required:
+      - job_id
+      - status
+      - stage
+      - result_card_id
+      - error
+      - created_at
+      - expires_at
+      - ocr_mode
+    InitialData:
+      type: object
+      additionalProperties: false
+      properties:
+        category: &id018
+          type: string
+          minLength: 1
+          maxLength: 200
+        fields:
+          type: object
+          additionalProperties: false
+          properties:
+            product_name:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            net_quantity:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            brand:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            model:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            material:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            dimensions:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            color:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            specifications:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            manufacturer:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            ingredients:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            storage_conditions:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            shelf_life:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            fat_percent:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+          required: []
+        required_fields:
+          type: array
+          items: &id016
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+          uniqueItems: true
+          maxItems: 13
+          deprecated: true
+          description: Старый список принимается для совместимости; перечисленные характеристики необязательны.
+        ocr_mode:
+          type: string
+          enum:
+          - local
+          - api
+          default: local
+          description: Только api передаёт фотографии Google Cloud Vision; без ключа 503, без скрытого fallback.
+      required: []
+    FieldUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        field_id: *id016
+        value:
+          anyOf:
+          - *id002
+          - type: 'null'
+        reviewed: &id017
+          type: boolean
+        resolve_conflict: *id017
+        required:
+          type: boolean
+          description: Игнорируется с 2.4.1. Обязательно только название.
+          deprecated: true
+      required:
+      - field_id
+      - value
+      - reviewed
+    CategoryUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        selected: *id018
+        reviewed: *id017
+      required:
+      - selected
+      - reviewed
+    DescriptionUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        text: *id003
+        reviewed: *id017
+        asserted_as_user_input: *id017
+      required:
+      - text
+      - reviewed
+      - asserted_as_user_input
+    PatchCard:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 1
+        field_updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldUpdate'
+          maxItems: 80
+        category_update:
+          $ref: '#/components/schemas/CategoryUpdate'
+        description_update:
+          $ref: '#/components/schemas/DescriptionUpdate'
+        add_fields:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              field_id: *id014
+              label:
+                type: string
+                minLength: 1
+                maxLength: 100
+              required:
+                type: boolean
+                deprecated: true
+                description: 'Игнорируется: созданная характеристика необязательна.'
+            required: []
+            anyOf:
+            - required:
+              - field_id
+            - required:
+              - label
+          maxItems: 79
+        remove_fields:
+          type: array
+          items: *id014
+          maxItems: 79
+          uniqueItems: true
+      required:
+      - expected_revision
+    ConfirmCard:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 1
+      required:
+      - expected_revision
+    Health:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+          - not_ready
+        providers:
+          type: object
+          additionalProperties:
+            anyOf:
+            - *id004
+            - type: array
+              items:
+                $ref: '#/components/schemas/OCRMode'
+      required:
+      - status
+      - providers
+    TemplateBlock:
+      type: object
+      additionalProperties: false
+      properties:
+        block_id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        kind:
+          type: string
+          enum:
+          - photos
+          - fields
+          - description
+          - category
+        field_ids:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+      required:
+      - block_id
+      - title
+      - kind
+      - field_ids
+    CardTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        template_id:
+          type: string
+          minLength: 1
+        version:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+        supported_categories:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateBlock'
+        description_styles:
+          type: array
+          items:
+            type: string
+            enum:
+            - structured
+      required:
+      - template_id
+      - version
+      - name
+      - supported_categories
+      - blocks
+      - description_styles
+    ProfileField:
+      type: object
+      additionalProperties: false
+      properties:
+        field_id:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+        label:
+          type: string
+          minLength: 1
+        required:
+          type: boolean
+      required:
+      - field_id
+      - label
+      - required
+    CategoryProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        category:
+          type: string
+          minLength: 1
+          maxLength: 200
+        label:
+          type: string
+          minLength: 1
+        supported:
+          type: boolean
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileField'
+      required:
+      - category
+      - label
+      - supported
+      - fields
+    TemplateCatalog:
+      type: object
+      additionalProperties: false
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardTemplate'
+        category_profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryProfile'
+      required:
+      - templates
+      - category_profiles
+    PreviewBlock:
+      type: object
+      additionalProperties: false
+      properties:
+        block_id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        kind:
+          type: string
+          enum:
+          - photos
+          - fields
+          - description
+          - category
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        description:
+          anyOf:
+          - $ref: '#/components/schemas/Description'
+          - type: 'null'
+        category:
+          anyOf:
+          - $ref: '#/components/schemas/Category'
+          - type: 'null'
+      required:
+      - block_id
+      - title
+      - kind
+      - fields
+      - photos
+      - description
+      - category
+    CardPreview:
+      type: object
+      additionalProperties: false
+      properties:
+        schema_version:
+          const: '2.2'
+        provider_mode:
+          type: string
+          enum:
+          - live
+          - fixture
+          - recorded_demo
+        card_id:
+          type: string
+          minLength: 1
+        card_revision:
+          type: integer
+          minimum: 1
+        template_id:
+          type: string
+          minLength: 1
+        template_version:
+          type: integer
+          minimum: 1
+        template_name:
+          type: string
+          minLength: 1
+        is_draft:
+          type: boolean
+        category_profile:
+          $ref: '#/components/schemas/CategoryProfile'
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviewBlock'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        readiness:
+          $ref: '#/components/schemas/Readiness'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        generated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+      required:
+      - schema_version
+      - provider_mode
+      - card_id
+      - card_revision
+      - template_id
+      - template_version
+      - template_name
+      - is_draft
+      - category_profile
+      - blocks
+      - sources
+      - readiness
+      - warnings
+      - generated_at
+      - expires_at
+    Recommendation:
+      type: object
+      additionalProperties: false
+      properties:
+        recommendation_id:
+          type: string
+          minLength: 1
+        card_revision:
+          type: integer
+          minimum: 1
+        rule_id:
+          type: string
+          minLength: 1
+        priority:
+          type: string
+          enum:
+          - blocker
+          - warning
+        area:
+          type: string
+          enum:
+          - photos
+          - text
+          - category
+          - characteristics
+        action_type:
+          type: string
+          enum:
+          - resolve_conflict
+          - provide_information
+          - enrich_optional
+          - review_value
+          - review_description
+          - replace_photos
+          - verify_photo
+        reason:
+          type: string
+          minLength: 1
+        action:
+          type: string
+          minLength: 1
+        field_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        photo_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        issue_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        question:
+          type:
+          - string
+          - 'null'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+      required:
+      - recommendation_id
+      - card_revision
+      - rule_id
+      - priority
+      - area
+      - action_type
+      - reason
+      - action
+      - field_ids
+      - photo_ids
+      - source_ids
+      - issue_ids
+      - question
+      - candidates
+    CardRecommendations:
+      type: object
+      additionalProperties: false
+      properties:
+        card_id:
+          type: string
+          minLength: 1
+        provider_mode:
+          type: string
+          enum:
+          - live
+          - fixture
+          - recorded_demo
+        card_revision:
+          type: integer
+          minimum: 1
+        generated_at:
+          type: string
+          format: date-time
+        readiness:
+          $ref: '#/components/schemas/Readiness'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        photo_analysis:
+          anyOf:
+          - $ref: '#/components/schemas/PhotoAnalysis'
+          - type: 'null'
+      required:
+      - card_id
+      - provider_mode
+      - card_revision
+      - generated_at
+      - readiness
+      - recommendations
+    VersionInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        api_version: *id005
+        features:
+          type: object
+          additionalProperties: false
+          properties:
+            templates: &id019
+              type: boolean
+            preview_json: *id019
+            preview_html: *id019
+            recommendations: *id019
+            dual_ocr: *id019
+            universal_products: *id019
+            copy_ocr: *id019
+            manual_drafts:
+              type: boolean
+            opt_in_suggestions:
+              type: boolean
+            product_library:
+              type: boolean
+            attribute_builder:
+              type: boolean
+            llm_assistance:
+              type: boolean
+            reliable_editor:
+              type: boolean
+          required:
+          - templates
+          - preview_json
+          - preview_html
+          - recommendations
+          - dual_ocr
+          - universal_products
+          - copy_ocr
+          - manual_drafts
+          - opt_in_suggestions
+          - product_library
+          - attribute_builder
+          - llm_assistance
+          - reliable_editor
+        editor_integration:
+          type: object
+          additionalProperties: false
+          properties:
+            template_selector: *id019
+            preview_button: *id019
+          required:
+          - template_selector
+          - preview_button
+        ocr_parser: *id005
+      required:
+      - api_version
+      - features
+      - editor_integration
+      - ocr_parser
+    OCRLine:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+        source_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        photo_id:
+          type: string
+          minLength: 1
+        bbox:
+          anyOf:
+          - type: array
+            items:
+              type: number
+              minimum: 0
+              maximum: 1
+            minItems: 4
+            maxItems: 4
+          - type: 'null'
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+        group:
+          type: string
+          enum:
+          - useful
+          - other
+          - doubtful
+        reason:
+          type: string
+          minLength: 1
+        field_id:
+          anyOf:
+          - type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+          - type: 'null'
+        suggested_value:
+          type:
+          - string
+          - 'null'
+      required:
+      - text
+      - source_ids
+      - photo_id
+      - bbox
+      - confidence
+      - group
+      - reason
+      - field_id
+      - suggested_value
+    OCRReview:
+      type: object
+      additionalProperties: false
+      properties:
+        card_id:
+          type: string
+          minLength: 1
+        card_revision:
+          type: integer
+          minimum: 1
+        filter_version:
+          type: string
+          minLength: 1
+        counts:
+          type: object
+          additionalProperties: false
+          properties:
+            raw:
+              type: integer
+              minimum: 0
+            useful:
+              type: integer
+              minimum: 0
+            other:
+              type: integer
+              minimum: 0
+            doubtful:
+              type: integer
+              minimum: 0
+            duplicates:
+              type: integer
+              minimum: 0
+          required:
+          - raw
+          - useful
+          - other
+          - doubtful
+          - duplicates
+        warnings:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/OCRLine'
+        notice:
+          type: string
+          minLength: 1
+      required:
+      - card_id
+      - card_revision
+      - filter_version
+      - counts
+      - warnings
+      - lines
+      - notice
+    OCRMode:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          enum:
+          - local
+          - api
+        label: *id004
+        provider: *id004
+        available: &id020
+          type: boolean
+        sends_photos: *id020
+        notice: *id004
+      required:
+      - id
+      - label
+      - provider
+      - available
+      - sends_photos
+      - notice
+    ManualCardCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        category:
+          type: string
+          minLength: 1
+          maxLength: 200
+        fields:
+          type: object
+          additionalProperties: false
+          properties:
+            product_name:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            net_quantity:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            brand:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            model:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            material:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            dimensions:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            color:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            specifications:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            manufacturer:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            ingredients:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            storage_conditions:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            shelf_life:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+            fat_percent:
+              type:
+              - string
+              - 'null'
+              maxLength: 4000
+          required: []
+        required_fields:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+          uniqueItems: true
+          maxItems: 13
+          deprecated: true
+          description: Старый список принимается для совместимости; перечисленные характеристики необязательны.
+      required: []
+    SuggestionJobCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision: *id012
+        ocr_mode:
+          type: string
+          enum:
+          - local
+          - api
+      required:
+      - expected_revision
+      - ocr_mode
+    AcceptSuggestion:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision: *id012
+        job_id: *id011
+        field_id: *id014
+        source_ids:
+          type: array
+          items: *id011
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+        replace_existing:
+          type: boolean
+          default: false
+      required:
+      - expected_revision
+      - job_id
+      - field_id
+      - source_ids
+    CardSuggestions:
+      type: object
+      additionalProperties: false
+      properties:
+        job_id: *id011
+        analysis_card:
+          $ref: '#/components/schemas/Card'
+        review:
+          $ref: '#/components/schemas/OCRReview'
+      required:
+      - job_id
+      - analysis_card
+      - review
+    CardSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        card_id: *id011
+        revision: *id012
+        title: *id011
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        photo_url:
+          type:
+          - string
+          - 'null'
+        state: *id021
+      required:
+      - card_id
+      - revision
+      - title
+      - created_at
+      - expires_at
+      - photo_url
+      - state
+    CardList:
+      type: object
+      additionalProperties: false
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardSummary'
+      required:
+      - cards
+    CardDeleted:
+      type: object
+      additionalProperties: false
+      properties:
+        deleted:
+          const: true
+        card_id: *id011
+      required:
+      - deleted
+      - card_id
+    PhotoAnalysis:
+      type: object
+      additionalProperties: false
+      properties:
+        job_id:
+          type: string
+          minLength: 1
+        requested_at:
+          type: string
+          format: date-time
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+      required:
+      - job_id
+      - requested_at
+      - photos
+      - issues
+    LLMConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        available:
+          type: boolean
+        provider: *id013
+        model: *id013
+        notice: *id013
+      required:
+      - available
+      - provider
+      - model
+      - notice
+    TextAssistanceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision: &id022
+          type: integer
+          minimum: 1
+        allow_external_processing:
+          type: boolean
+      required:
+      - expected_revision
+      - allow_external_processing
+    ApplyTextAssistance:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_revision: *id022
+        analysis_id: *id013
+      required:
+      - expected_revision
+      - analysis_id
+    TextAssistanceResult:
+      type: object
+      additionalProperties: false
+      properties:
+        description_sentences:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              text: &id023
+                type: string
+                minLength: 1
+                maxLength: 800
+              fact_ids:
+                type: array
+                items: &id024
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                uniqueItems: true
+                maxItems: 80
+                minItems: 1
+            required:
+            - text
+            - fact_ids
+          maxItems: 12
+        recommendations:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              kind:
+                type: string
+                enum:
+                - clarity
+                - repetition
+                - contradiction
+              message: *id023
+              fragment:
+                type: string
+                maxLength: 500
+              fact_ids:
+                type: array
+                items: *id024
+                uniqueItems: true
+                maxItems: 80
+            required:
+            - kind
+            - message
+            - fragment
+            - fact_ids
+          maxItems: 10
+        questions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              question: *id023
+              suggested_label:
+                type: string
+                maxLength: 100
+            required:
+            - question
+            - suggested_label
+          maxItems: 5
+      required:
+      - description_sentences
+      - recommendations
+      - questions
+    TextAssistance:
+      type: object
+      additionalProperties: false
+      properties:
+        analysis_id: *id013
+        card_id: *id013
+        card_revision: *id022
+        provider: *id013
+        model: *id013
+        prompt_version: *id013
+        expires_at:
+          type: string
+          format: date-time
+        result:
+          $ref: '#/components/schemas/TextAssistanceResult'
+      required:
+      - analysis_id
+      - card_id
+      - card_revision
+      - provider
+      - model
+      - prompt_version
+      - expires_at
+      - result
+  responses:
+    Error:
+      description: Ошибка с code/message/request_id/details; 429 включает Retry-After
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'

@@ -1,0 +1,14 @@
+{
+  "name": "product-card",
+  "private": true,
+  "version": "2.4.2",
+  "dependencies": {
+    "swagger-ui-dist": "5.32.0",
+    "tesseract.js": "6.0.1"
+  },
+  "engines": {
+    "node": "24.15.0",
+    "npm": "11.12.1"
+  },
+  "packageManager": "npm@11.12.1"
+}
